@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bulletinInput = document.getElementById('bulletinText');
     const bulletinList = document.getElementById('bulletinList');
     const notifDrawer = document.getElementById('notifDrawer');
-    const notifTrigger = document.getElementById('notifTrigger'); 
+    const notifTrigger = document.getElementById('notifTrigger'); // THE BELL ICON ON YOUR DASHBOARD
     const closeNotifBtn = document.getElementById('closeNotifBtn');
 
     if (chartCanvas) {
@@ -107,6 +107,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 notifDrawer.classList.remove('open');
             }
         });
-    }
 
+        // 1. Define the function GLOBALLY (outside of any other blocks)
+        window.openReportModal = function () {
+            const modal = document.getElementById('reportModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                console.log("Modal opened!"); // Check your browser console (F12) to see this
+            } else {
+                console.error("Could not find the element with ID 'reportModal'");
+            }
+        };
+
+        // 2. Wrap the closing logic in a listener to ensure the HTML is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('reportModal');
+            const closeModal = document.getElementById('closeModal');
+            const cancelBtn = document.getElementById('cancelBtn');
+
+            if (closeModal) {
+                closeModal.onclick = () => modal.style.display = 'none';
+            }
+
+            if (cancelBtn) {
+                cancelBtn.onclick = () => modal.style.display = 'none';
+            }
+
+            // Close if clicking the dark background
+            window.onclick = (event) => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            };
+        });
+    }
 });
