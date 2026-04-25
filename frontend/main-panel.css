@@ -4,6 +4,13 @@
     box-sizing: border-box;
     font-family: 'Inter', 'Montserrat', sans-serif;
 }
+/* Standard syntax */
+@media screen and (max-width: 600px) {
+  /* This CSS runs only on screens 600px wide or smaller */
+  body {
+    background-color: lightblue;
+  }
+}
 
 body,
 html {
@@ -19,8 +26,8 @@ html {
     animation: fadeInPage 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
 }
 .sidebar {
-    width: 260px;
-    height: 93vh;
+    width: 16%;
+    height: 93%;
     background: #ffffff;
     padding: 30px 20px;
     display: flex;
@@ -42,7 +49,7 @@ html {
 }
 .logo-img {
     width: 100%;
-    height: 40px;
+    height: 100%;
     object-fit: contain;
     scale: 1.3;
 }
@@ -54,14 +61,15 @@ html {
     align-items: center;
     text-align: center;
     width: 100%;
-    margin-bottom: 30px;
+    margin-bottom: 30%;
 }
 
 .profile-img {
     display: block;
     margin: 0 auto 10px auto;
-    width: 120px;
-    height: 120px;
+    width: 88%;
+    height: 61%;
+    scale: 0.8;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #eee;
@@ -72,7 +80,6 @@ html {
     font-weight: 600;
     font-size: 0.8rem;
     color: #0b0b0b;
-    margin-bottom: 5px;
     align-items: center;
     text-align: center;
 }
@@ -81,7 +88,7 @@ html {
     display: block;
     font-weight: 800;
     font-size: 0.9rem;
-    margin-bottom: 60px;
+    margin-bottom: 40%;
 
 }
 /* Links */
@@ -90,7 +97,7 @@ html {
 }
 
 .nav-links li {
-    margin-bottom: 10px;
+    margin-bottom: 2%;
 }
 
 .nav-links a {
@@ -132,11 +139,11 @@ html {
 .logout-container {
     margin-top: auto;
     width: 100%;
-    padding-top: 260px;
+    padding-top: 100%;
 }
 .main-content {
-    width: 1160px;
-    height: 93vh;
+    width: 76%;
+    height: 93%;
     background: #f8f8f3;
     padding: 30px 20px;
     display: flex;
@@ -146,25 +153,21 @@ html {
     position: absolute;
     box-sizing: border-box;
 }
-.top-nav {
-    position: absolute;
-    top: 45px;
+.dash-header {
     margin-left: 30px;
     display: flex;
-    align-items: auto;
-    gap: 10px;
+    justify-content: space-between;
+    margin-right: 2%;
+    align-items: center;
 }
 .content-row {
     display: flex;
     align-items: center;
-    gap: 50px;
-    width: 100%;
-    max-width: 800px;
 }
 .about-text {
     flex: 1;
     text-align: left;
-    margin-top: 85px;
+    margin-top: 3%;
     margin-left: 30px;
 }
 
@@ -204,8 +207,7 @@ html {
     display: flex;
     gap: 12px;
     flex-direction: row;
-    align-items: right;
-    margin-left: 820px;
+    justify-content: space-evenly;
 }
 
 .icon-btn {
@@ -264,7 +266,7 @@ html {
     flex: 1;
     background: white;
     padding: 25px;
-    height: 450px;
+    height: 73%;
     border-radius: 30px;
     margin-right: 20px;
     margin-left: 20px;
@@ -331,7 +333,7 @@ html {
     background: linear-gradient(135deg, #800000 0%, #4a0000 100%);
     border-radius: 30px;
     padding: 35px;
-    width: 510px;
+    width: 94%;
     color: white;
     display: flex;
     justify-content: space-between;
@@ -365,8 +367,8 @@ html {
     opacity: 0.3;
 }
 .wishlist-section {
-    width: 510px;
-    height: 210px;
+    width: 94%;
+    height: 35%;
     background-color: white;
     border-radius: 30px;
     overflow: auto;
