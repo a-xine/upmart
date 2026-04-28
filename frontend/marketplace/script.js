@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isSeller) {
             if (elements.viewSeller) elements.viewSeller.style.display = 'block';
             if (elements.categoryNav) elements.categoryNav.style.display = 'none'; 
-            elements.greet.innerText = "Seller Mode";
+            elements.greet.innerText = "🛒Marketplace|Seller Mode";
             elements.subgreet.innerText = "Manage your shop and list new products.";
             elements.dynamicLink.innerHTML = '<span class="icon">📈</span> My Transactions';
             elements.btnSeller.classList.add('active');
@@ -102,8 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             if (elements.viewBuyer) elements.viewBuyer.style.display = 'block';
             if (elements.categoryNav) elements.categoryNav.style.display = 'flex'; 
-            elements.greet.innerText = "Welcome to UPMart, Diane!";
-            elements.subgreet.innerText = "Start exploring our marketplace and discover amazing products!";
+            elements.greet.innerText = "🛒Marketplace|Buyer Mode";
+            elements.subgreet.innerText = "Browse and find the products you need!";
             elements.dynamicLink.innerHTML = '<span class="icon">🛍️</span> My Cart';
             elements.btnBuyer.classList.add('active');
             elements.btnSeller.classList.remove('active');

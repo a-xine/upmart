@@ -45,7 +45,7 @@
         <div class="main-content">
             <header class="wall-header">
                 <div class="header-top-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 10px;">
-                    <h1 style="font-size: 1.2rem; font-weight: 800;"><span class="icon">🛒</span> Marketplace</h1>
+                    <h1 style="font-size: 1.2rem; font-weight: 800;"id="greeting"><span class="icon">🛒</span>Marketplace|Buyer Mode</h1></h1>
                 <!--<div class="status-indicators" style="display: flex; gap: 10px;">
                         <button class="icon-btn" id="notifBtn"><span class="material-icons">notifications</span></button>
                         <button class="icon-btn" id="helpBtn"><span class="material-icons">help_outline</span></button>
@@ -64,7 +64,6 @@
                 </div>
 
                 <div class="welcome" style="margin-top: 10px;">
-                    <h2 id="greeting">Buyer Mode</h2>
                     <p id="sub-greeting">Browse and find the products you need!</p>
                 </div>
             </header>
