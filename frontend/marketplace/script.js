@@ -103,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (elements.viewBuyer) elements.viewBuyer.style.display = 'block';
             if (elements.categoryNav) elements.categoryNav.style.display = 'flex'; 
             elements.greet.innerText = "🛒Marketplace|Buyer Mode";
+            elements.greet.innerText = "Buyer Mode";
             elements.subgreet.innerText = "Browse and find the products you need!";
             elements.dynamicLink.innerHTML = '<span class="icon">🛍️</span> My Cart';
             elements.btnBuyer.classList.add('active');

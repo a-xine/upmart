@@ -36,15 +36,14 @@
     </div>
 
     <div class="main-content">
-        <nav class="top-nav">
-            <h1 style="font-size: 1.4rem; margin-top: 10px;">🏠︎ Dashboard</h1>
+        <div class="dash-header">
+            <h1 style="font-size: 1.4rem; margin-top: 10px;"><span>🏠︎</span> Dashboard</h1>
+
             <div class="status-indicators">
-                <button class="icon-btn" id="notifTrigger"><span class="material-icons">notifications</span><span
-                        class="notif-badge"></span></button>
-                <button class="icon-btn" onclick="openReportModal()"><span class="material-icons">report
-                    </span></button>
+                <button class="icon-btn" id="notifTrigger"><span class="material-icons">notifications</span><span class="notif-badge"></span></button>
+                <button class="icon-btn" onclick="openReportModal()"><span class="material-icons">report</span></button>
             </div>
-        </nav>
+        </div>
 
         <div class="content-row">
             <div class="about-text">
@@ -122,7 +121,7 @@
         </div>
 
         <div id="setupSection" class="content-view">
-            <h2>Complete Your Profile</h2>
+            <h2 style="margin-top: 20px;">Complete Your Profile</h2>
             <p>Before you start trading on UPMart, we need a few details.</p>
 
             <form class="setup-form">
@@ -209,7 +208,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="main-dash.js"></script>
 </body>
 
