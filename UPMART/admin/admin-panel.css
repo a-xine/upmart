@@ -413,7 +413,7 @@ html {
     height: 530px;
     padding: 30px;
     margin-top: 10px;
-    margin-left: 30px   ;
+    margin-left: 10px   ;
     border-radius: 30px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.02);
     overflow-y: auto;
@@ -473,7 +473,6 @@ html {
 .delete-btn:hover { background: #c62828; color: white; }
 .admin-review-grid {
     display: grid;
-    /* Column 1 takes all available space, Column 2 is fixed at 380px */
     grid-template-columns: 1fr 380px; 
     gap: 25px;
     align-items: start;
@@ -493,9 +492,10 @@ html {
 
 .preview-panel {
     background: white;
-    border-radius: 20px;
+    border-radius: 25px;
+    padding: 20px;
+    margin-top: 10px;
     position: sticky; /* Keeps it visible while you scroll the list on the left */
-    top: 20px;
     min-height: 400px;
 }
 
