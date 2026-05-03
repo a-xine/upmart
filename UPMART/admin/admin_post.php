@@ -11,33 +11,74 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 // 2. Handle Actions (Approve or Delete)
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $p_id = intval($_GET['id']);
-  
-    if (isset($_GET['action']) && $_GET['action'] === 'approve') {
-        $p_id = intval($_GET['id']);
-        
-        // 1. Get the seller_id and title first
+    $action = $_GET['action'];
+
+    if ($action === 'approve') {
+        // 1. Fetch product details
         $res = $conn->query("SELECT seller_id, title FROM products WHERE product_id = $p_id");
         $product = $res->fetch_assoc();
-        
+
         if ($product) {
             // 2. Update post status
-            $conn->query("UPDATE products SET status = 'Available' WHERE product_id = $p_id");
+            $conn->query("UPDATE products SET 
+                        status = 'Available', 
+                        approval_status = 'Approved' 
+                        WHERE product_id = $p_id");
             
-            // 3. Send notification to the seller
-            $msg = "Your post '" . $product['title'] . "' has been approved and is now live!";
-            addNotification($conn, $product['seller_id'], $msg);
+            // 3. Prepare the notification text
+            $sender_name = "System Admin";
+            $raw_msg = "<b>$sender_name</b>: Your post '" . $product['title'] . "' has been approved and is now live!";
+        
+
+            $safe_msg = mysqli_real_escape_string($conn, $raw_msg);
+
+            
+            $admin_id = $_SESSION['user_id']; 
+            $seller_id = $product['seller_id'];
+
+            // 4. Insert into notifications using the escaped $safe_msg
+            $notif_query = "INSERT INTO notifications (user_id, sender_id, message, is_read) 
+                        VALUES ($seller_id, $admin_id, '$safe_msg', 0)";
+            
+            if ($conn->query($notif_query)) {
+                header("Location: admin_post.php?msg=approved");
+                exit();
+            } else {
+                die("Notification Error: " . $conn->error);
+            }
         }
+    }
+    elseif ($action === 'delete') {
+        // Instead of hard deleting, we set to Denied to provide feedback, 
+        // but your request asked for the delete logic:
+        $conn->query("DELETE FROM products WHERE product_id = $p_id");
+        header("Location: admin_post.php?msg=deleted");
+        exit();
     }
 }
 
 // 3. Fetch Posts (Join with users for seller names and categories for the tag)
 $query = "SELECT p.*, u.full_name, c.category_name, 
-          (SELECT image_path FROM media WHERE product_id = p.product_id LIMIT 1) as product_img 
+          (SELECT GROUP_CONCAT(image_path) FROM media WHERE product_id = p.product_id) as all_images 
           FROM products p 
           JOIN users u ON p.seller_id = u.user_id 
           JOIN categories c ON p.category_id = c.category_id 
+          WHERE p.approval_status = 'Pending'    
           ORDER BY p.created_at DESC";
 $posts = $conn->query($query);
+
+// Count posts that need admin approval
+$pending_post_query = "SELECT COUNT(*) as total FROM products WHERE approval_status = 'Pending'";
+$pending_post_res = $conn->query($pending_post_query);
+$pending_post_count = $pending_post_res->fetch_assoc()['total'] ?? 0;
+
+// Count reports that are still 'Pending'
+$pending_report_query = "SELECT COUNT(*) as total FROM reports WHERE status = 'Pending'";
+$pending_report_res = $conn->query($pending_report_query);
+$pending_report_count = $pending_report_res->fetch_assoc()['total'] ?? 0;
+
+// Total combined notifications
+$total_admin_notifs = $pending_post_count + $pending_report_count;
 ?>
 
 <!DOCTYPE html>
@@ -81,10 +122,28 @@ $posts = $conn->query($query);
 
     <div class="main-content">
         <nav class="top-nav">
-            <h1 style="font-size: 1.4rem; margin-top: 10px;">📮 Posts</h1>
+            <h1 style="font-size: 1.4rem; margin-top: 10px;">🏠︎ Dashboard</h1>
             <div class="status-indicators">
-                <button class="icon-btn" id="notifTrigger" style="margin-left: 50px;"><span class="material-icons">notifications</span><span
-                        class="notif-badge"></span></button>
+                <!-- Added onclick="toggleNotifSidebar()" to the button -->
+                <button class="icon-btn" onclick="toggleNotifSidebar()" style="position: relative;">
+                    <span class="material-icons">notifications</span>
+                    <?php if ($total_admin_notifs > 0): ?>
+                        <span class="notif-badge" id="adminNotifBadge" style="
+                            background: #9a0000; 
+                            color: white; 
+                            position: absolute; 
+                            top: -2px; 
+                            right: -2px; 
+                            border-radius: 50%; 
+                            padding: 2px 6px; 
+                            font-size: 0.7rem; 
+                            font-weight: bold;
+                            border: 2px solid white;
+                        ">
+                            <?= $total_admin_notifs ?>
+                        </span>
+                    <?php endif; ?>
+                </button>
             </div>
         </nav>
 
@@ -95,10 +154,18 @@ $posts = $conn->query($query);
         </div>
 
         <section class="dashboard-grid admin-review-grid">
-            <div class="posts-review-container">
-                <div class="review-header">
-                    <h3>Pending Posts</h3>
-                    <span class="count-badge">0 Pending</span>
+           <div class="posts-review-container">
+                <div class="review-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <h3>Pending Post</h3>
+                    <?php if ($pending_post_count > 0): ?>
+                        <span class="count-badge" style="background: maroon; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">
+                            <?= $pending_post_count ?> Pending
+                        </span>
+                    <?php else: ?>
+                        <span class="count-badge" style="background: #e1f5da; color: #2e7d32; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem;">
+                            All Caught Up!
+                        </span>
+                    <?php endif; ?>
                 </div>
 
                 <div class="posts-list" id="pendingPosts">
@@ -107,9 +174,17 @@ $posts = $conn->query($query);
                             $img = !empty($row['product_img']) ? $row['product_img'] : '../uploads/default.jpg';
                         ?>
                             <div class="post-item" 
-                                onclick="showPreview('<?= addslashes($row['title']) ?>', '<?= addslashes($row['full_name']) ?>', '₱<?= number_format($row['price'], 2) ?>', '<?= addslashes($row['description']) ?>', '<?= $img ?>')">
+                                onclick="showPreview(
+                                    '<?= addslashes($row['title']) ?>', 
+                                    '<?= addslashes($row['full_name']) ?>', 
+                                    '₱<?= number_format($row['price'], 2) ?>', 
+                                    '<?= addslashes($row['description']) ?>', 
+                                    '<?= $img ?>' 
+                                )"> 
+                                
                                 <div class="post-details">
-                                    <img src="<?= $img ?>" alt="Product" class="item-img">
+                                    <!-- Ensure this image in the list card is also sized correctly -->
+                                    <img src="<?= $img ?>" alt="Product" class="item-img" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
                                     <div class="item-info">
                                         <h4><?= htmlspecialchars($row['title']) ?></h4>
                                         <p>Seller: <strong><?= htmlspecialchars($row['full_name']) ?></strong> • ₱<?= number_format($row['price'], 2) ?></p>
@@ -117,10 +192,10 @@ $posts = $conn->query($query);
                                     </div>
                                 </div>
                                 <div class="post-actions">
-                                    <a href="admin-posts.php?action=approve&id=<?= $row['product_id'] ?>" class="approve-btn" style="text-decoration:none;">
+                                    <a href="admin_post.php?action=approve&id=<?= $row['product_id'] ?>" class="approve-btn" style="text-decoration:none;">
                                         <span class="material-icons">check</span> Approve
                                     </a>
-                                    <a href="admin-posts.php?action=delete&id=<?= $row['product_id'] ?>" class="delete-btn" style="text-decoration:none;" onclick="return confirm('Delete this post?')">
+                                    <a href="admin_post.php?action=delete&id=<?= $row['product_id'] ?>" class="delete-btn" style="text-decoration:none;" onclick="return confirm('Delete this post?')">
                                         <span class="material-icons">delete_outline</span> Delete
                                     </a>
                                 </div>
@@ -130,7 +205,6 @@ $posts = $conn->query($query);
                         <p style="padding:20px; color:#888;">No posts found in the database.</p>
                     <?php endif; ?>
                 </div>
-                    
             </div>
 
             <div class="preview-panel" id="previewPanel">
@@ -139,22 +213,32 @@ $posts = $conn->query($query);
                     <p>Select a post to inspect details</p>
                 </div>
 
-                <div class="preview-content" id="previewContent" style="display: none;">
-                    <img id="prevImg" src="" alt="Product Large">
-                    <div class="preview-text">
-                        <h2 id="prevTitle">Item Title</h2>
-                        <div class="prev-meta">
-                            <span id="prevSeller">Seller</span> • <span id="prevPrice">Price</span>
+                <div class="preview-content card-format" id="previewContent" style="display: none;">
+                    <div class="card-header">
+                        <div class="user-meta">
+                            <img id="prevUserImg" src="../images/profile.jpg" class="user-avatar">
+                            <div class="user-info">
+                                <h4 id="prevSeller">Seller Name</h4>
+                                <span id="prevCategory" class="category-text">Category</span>
+                            </div>
                         </div>
-                        <hr>
-                        <h5>Description</h5>
-                        <p id="prevDesc">Full description...</p>
+                        <div class="price-badge" id="prevPrice">₱0.00</div>
                     </div>
 
-                    <div class="preview-actions">
-                        <button class="approve-btn-large">Confirm Approval</button>
-                        <button class="delete-btn-large">Reject & Notify Seller</button>
+                    <h3 id="prevTitle" class="item-title-text">Item Title</h3>
+
+                    <div class="media-container">
+                        <img id="prevImg" src="" alt="Product Large">
                     </div>
+
+                    <div class="description-area">
+                        <h5>Description</h5>
+                        <p id="prevDesc">Full description goes here...</p>
+                    </div>
+
+                    <button class="buy-product-btn">
+                        <span class="material-icons">shopping_bag</span> Buy Product
+                    </button>
                 </div>
             </div>
         </section>
