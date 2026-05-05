@@ -11,33 +11,74 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 // 2. Handle Actions (Approve or Delete)
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $p_id = intval($_GET['id']);
-  
-    if (isset($_GET['action']) && $_GET['action'] === 'approve') {
-        $p_id = intval($_GET['id']);
-        
-        // 1. Get the seller_id and title first
+    $action = $_GET['action'];
+
+    if ($action === 'approve') {
+        // 1. Fetch product details
         $res = $conn->query("SELECT seller_id, title FROM products WHERE product_id = $p_id");
         $product = $res->fetch_assoc();
-        
+
         if ($product) {
             // 2. Update post status
-            $conn->query("UPDATE products SET status = 'Available' WHERE product_id = $p_id");
+            $conn->query("UPDATE products SET 
+                        status = 'Available', 
+                        approval_status = 'Approved' 
+                        WHERE product_id = $p_id");
             
-            // 3. Send notification to the seller
-            $msg = "Your post '" . $product['title'] . "' has been approved and is now live!";
-            addNotification($conn, $product['seller_id'], $msg);
+            // 3. Prepare the notification text
+            $sender_name = "System Admin";
+            $raw_msg = "<b>$sender_name</b>: Your post '" . $product['title'] . "' has been approved and is now live!";
+        
+
+            $safe_msg = mysqli_real_escape_string($conn, $raw_msg);
+
+            
+            $admin_id = $_SESSION['user_id']; 
+            $seller_id = $product['seller_id'];
+
+            // 4. Insert into notifications using the escaped $safe_msg
+            $notif_query = "INSERT INTO notifications (user_id, sender_id, message, is_read) 
+                        VALUES ($seller_id, $admin_id, '$safe_msg', 0)";
+            
+            if ($conn->query($notif_query)) {
+                header("Location: admin_post.php?msg=approved");
+                exit();
+            } else {
+                die("Notification Error: " . $conn->error);
+            }
         }
+    }
+    elseif ($action === 'delete') {
+        // Instead of hard deleting, we set to Denied to provide feedback, 
+        // but your request asked for the delete logic:
+        $conn->query("DELETE FROM products WHERE product_id = $p_id");
+        header("Location: admin_post.php?msg=deleted");
+        exit();
     }
 }
 
 // 3. Fetch Posts (Join with users for seller names and categories for the tag)
 $query = "SELECT p.*, u.full_name, c.category_name, 
-          (SELECT image_path FROM media WHERE product_id = p.product_id LIMIT 1) as product_img 
+          (SELECT GROUP_CONCAT(image_path) FROM media WHERE product_id = p.product_id) as all_images 
           FROM products p 
           JOIN users u ON p.seller_id = u.user_id 
           JOIN categories c ON p.category_id = c.category_id 
+          WHERE p.approval_status = 'Pending'    
           ORDER BY p.created_at DESC";
 $posts = $conn->query($query);
+
+// Count posts that need admin approval
+$pending_post_query = "SELECT COUNT(*) as total FROM products WHERE approval_status = 'Pending'";
+$pending_post_res = $conn->query($pending_post_query);
+$pending_post_count = $pending_post_res->fetch_assoc()['total'] ?? 0;
+
+// Count reports that are still 'Pending'
+$pending_report_query = "SELECT COUNT(*) as total FROM reports WHERE status = 'Pending'";
+$pending_report_res = $conn->query($pending_report_query);
+$pending_report_count = $pending_report_res->fetch_assoc()['total'] ?? 0;
+
+// Total combined notifications
+$total_admin_notifs = $pending_post_count + $pending_report_count;
 ?>
 
 <!DOCTYPE html>
