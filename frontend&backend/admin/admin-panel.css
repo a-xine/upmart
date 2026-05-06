@@ -260,6 +260,36 @@ html {
     border: 2px solid #ffffff;
 }
 
+/* admin-panel.css */
+#notifSidebar {
+    display: none; /* Controlled by JS */
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 350px; /* Width of the drawer */
+    height: 100vh;
+    background: #fdfdfd;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    z-index: 9999; /* Stay above everything */
+    padding: 0; /* Clear padding for the header */
+    transition: 0.3s ease;
+}
+
+.notif-header {
+    padding: 20px;
+    background: white;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#notifList {
+    padding: 15px;
+    overflow-y: auto;
+    height: calc(100vh - 80px);
+}
+
 .material-icons {
     font-size: 20px;
     user-select: none;
@@ -472,9 +502,14 @@ html {
 .delete-btn { background: #ffebee; color: #c62828; }
 .delete-btn:hover { background: #c62828; color: white; }
 .admin-review-grid {
-    display: flex;
+    display: grid;
+    /* Column 1 takes all available space, Column 2 is fixed at 380px */
+    grid-template-columns: 1fr 380px; 
     gap: 25px;
-    height: 75vh; /* Takes up most of the screen */
+    align-items: start;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .pending-list-container {
@@ -487,24 +522,21 @@ html {
 }
 
 .preview-panel {
-    flex: 1;
-    margin-right: 30px;
-    margin-bottom: 40px;
     background: white;
-    border-radius: 30px;
-    padding: 30px;
-    border: 2px dashed #f0f0f0; /* Makes it look like a placeholder until clicked */
-    overflow-y: auto;
+    border-radius: 20px;
+    position: sticky; /* Keeps it visible while you scroll the list on the left */
+    top: 20px;
+    min-height: 400px;
 }
 
 /* Preview Internal Elements */
 #prevImg {
     width: 100%;
-    height: 200px;
-    object-fit: contain;
-    background: #f9f9f9;
-    border-radius: 20px;
-    margin-bottom: 20px;
+    max-height: 280px; 
+    object-fit: cover; 
+    border-radius: 12px;
+    margin-bottom: 15px;
+    display: block;
 }
 
 .prev-meta { color: #888; font-weight: 600; margin-bottom: 15px; }
@@ -602,3 +634,81 @@ html {
 .view-btn { background: #e3f2fd; color: #1976d2; }
 .ban-btn { background: #800000; color: white; }
 .dismiss-btn { background: #eee; color: #777; }
+
+/* The container representing the card in the photo */
+.card-format {
+    padding: 20px;
+    border: 1px solid #eee;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.user-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: 1px solid #eee;
+}
+
+.user-info h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #1a1a2e;
+}
+
+.category-text {
+    font-size: 0.8rem;
+    color: #8b0000; /* Maroon color for the category subtext */
+    font-weight: 600;
+}
+
+.price-badge {
+    background: #e1f5da;
+    color: #1a1a2e;
+    padding: 6px 15px;
+    border-radius: 12px;
+    font-weight: 800;
+}
+
+.item-title-text {
+    margin: 10px 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.media-container {
+    width: 100%;
+    margin: 15px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.buy-product-btn {
+    width: 100%;
+    background: #a30000; /* Matching the red/maroon button */
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+    cursor: pointer;
+}
