@@ -102,18 +102,18 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json()) // Change .text() to .json()
         .then(data => {
             if (data.success) {
-                alert(`Match noted for ${data.item_name}! ${data.requester_name} has been notified.`);
+                alert(`Match noted for ${data.item_name}! ${data.requester} has been notified.`);
             } else {
                 alert("Error: " + data.message);
             }
         })
         .catch(err => {
             console.error("Match Error:", err);
-            alert("Could not send match. Please try again.");
+            alert("Could not send match! Please try again.");
         });
     };
 
-    if (addWishBtn) {
+    if (addWishBtn) {       
         addWishBtn.addEventListener('click', () => { wishModal.style.display = 'flex'; });
     }
 
@@ -123,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (closeWishModal) closeWishModal.onclick = hideWishModal;
-    if (cancelWishBtn) cancelWishBtn.onclick = hideWishModal;
 
     if (wishForm) {
         wishForm.addEventListener('submit', (e) => {
