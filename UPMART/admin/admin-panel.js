@@ -4,47 +4,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (chartCanvas) {
             const ctx = chartCanvas.getContext('2d');
-            const data = {
-                labels: catLabels,
+
+            new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: chart_labels, // Matches the PHP bridge name
                 datasets: [{
-                    label: 'Top Categories',
-                    data: catData,
+                    label: 'Post Distribution',
+                    data: chart_data, // Matches the PHP bridge name
                     backgroundColor: [
-                        'rgba(128, 0, 0, 0.85)',
-                        'rgba(255, 184, 28, 0.85)',
-                        'rgba(225, 245, 218, 1)',
-                        'rgba(26, 26, 46, 0.85)',
-                        'rgba(224, 99, 15, 0.85)'
+                        'rgba(128, 0, 0, 0.85)',   // 1. Dorm Essentials
+                        'rgba(255, 184, 28, 0.85)',  // 2. Arki Mats
+                        'rgba(44, 62, 80, 0.85)',    // 3. Lab Essentials
+                        'rgba(155, 89, 182, 0.85)',  // 4. Fashion
+                        'rgba(52, 152, 219, 0.85)',  // 5. Books
+                        'rgba(26, 188, 156, 0.85)',  // 6. Services
+                        'rgba(231, 76, 60, 0.85)',   // 7. Foods
+                        'rgba(243, 156, 18, 0.85)',  // 8. School Supplies
+                        'rgba(39, 174, 96, 0.85)',   // 9. Art Materials
+                        'rgba(149, 165, 166, 0.85)'  // 10. Others
                     ],
                     hoverOffset: 15,
-                    borderWidth: 0
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
                 }]
-        };
+            },
 
-        const config = {
-            type: 'doughnut',
-            data: data,
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                cutout: '59%',
                 plugins: {
                     legend: {
                         position: 'bottom',
                         labels: {
                             padding: 20,
-                            usePointStyle: true, // Circular markers in legend
-                            font: {
-                                family: "'Inter', sans-serif",
-                                size: 12,
-                                weight: '600'
-                            }
+                            usePointStyle: true,
+                            font: { family: "'Inter', sans-serif", size: 11 }
                         }
-                }
+                    }
                 }
             }
-        };
-        new Chart(ctx, config);
-        
+        });
 
         if (logoutBtn) {
             logoutBtn.addEventListener('click', (e) => {
@@ -55,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
-    });
+});
 
     // GLOBAL SCOPE FUNCTIONS (So HTML can find them)
     function handlePost(postId, action) {
@@ -134,6 +135,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
     }
+
+    // Updated Admin Notification Toggle
+    function toggleNotifSidebar() {
+        const notifDrawer = document.getElementById('notifDrawer');
+        const notifContainer = document.getElementById('notif-list-container');
+        const statusText = document.getElementById('notif-status-text');
+
+        if (!notifDrawer) return;
+
+        // Toggle visibility class
+        notifDrawer.classList.toggle('open');
+
+        if (notifDrawer.classList.contains('open')) {
+            // Fetch using the same controller as the user dashboard
+            fetch('../dashboard/notif_controller.php?action=fetch')
+                .then(res => res.text())
+                .then(data => {
+                    notifContainer.innerHTML = data;
+                    if (data.includes('notif-item')) {
+                        statusText.innerText = "You have new updates";
+                    }
+                })
+                .catch(err => console.error("Admin Notif Error:", err));
+        }
+    }
+
+    // Add event listener for the close button
+    document.getElementById('closeNotifBtn').addEventListener('click', () => {
+        document.getElementById('notifDrawer').classList.remove('open');
+    });
+
 
 // Check for new items every 60 seconds
 setInterval(updateAdminBadges, 60000);
