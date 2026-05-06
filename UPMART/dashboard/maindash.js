@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Element Selectors
-    const chartCanvas = document.getElementById('myChart');
     const logoutBtn = document.querySelector('.logout-btn');
     const postBtn = document.getElementById('postBtn');
     const bulletinInput = document.getElementById('bulletinText');
@@ -9,10 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const notifTrigger = document.getElementById('notifTrigger');
     const closeNotifBtn = document.getElementById('closeNotifBtn');
     
+    // Modals
     const reportModal = document.getElementById('reportModal');
     const reportClose = document.getElementById('closeModal');
     const reportCancel = document.getElementById('cancelBtn');
-    const reportForm = document.getElementById('reportForm');
 
     const wishModal = document.getElementById('wishModal');
     const addWishBtn = document.querySelector('.add-wish-btn');
@@ -20,26 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelWishBtn = document.getElementById('cancelWishBtn');
     const wishForm = document.getElementById('wishForm');
 
-    // 2. Chart.js Implementation
-    if (chartCanvas) {
-        const ctx = chartCanvas.getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Academic', 'Electronics', 'Dorm Essentials', 'Food'],
-                datasets: [{
-                    data: [6, 9, 11, 15],
-                    backgroundColor: ['rgba(128, 0, 0, 0.85)', 'rgba(255, 184, 28, 0.85)', 'rgba(225, 245, 218, 1)', 'rgba(26, 26, 46, 0.85)'],
-                    hoverOffset: 15
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } }
-            }
-        });
-    }
+    const reportForm = document.getElementById('reportForm');
 
     // 3. Navigation & Logout
     if (logoutBtn) {
@@ -65,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Bulletin Logic
     function loadBulletin() {
+        // Changed back to root path
         fetch('bulletin_controller.php?action=fetch') 
             .then(res => res.text())
             .then(data => { if(bulletinList) bulletinList.innerHTML = data; })
@@ -89,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch('bulletin_controller.php', { method: 'POST', body: formData })
                 .then(res => res.text())
                 .then(data => {
-                    if (data.includes("Success")) {
+                    if (data.trim() === "Success") {
                         bulletinInput.value = "";
                         loadBulletin();
                     }
@@ -99,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 5. Wishlist Logic
     function loadWishes() { 
+        // Changed back to root path
         fetch('wishlist_controller.php?action=fetch')
             .then(res => res.text())
             .then(data => {
@@ -117,31 +99,26 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             body: formData
         })
-        .then(res => res.json())
+        .then(res => res.json()) // Change .text() to .json()
         .then(data => {
             if (data.success) {
-                // Use your existing toast function for better UX than an alert
-                showToast("Match noted! Opening chat with " + data.requester_name + "...");
-                
-                // Trigger your existing chat UI
-                // We pass 0 for product_id as this is a wish match, not a direct product listing
-                if (window.openChatUI) {
-                    window.openChatUI(0, data.requester_id, "Wish Match: " + data.item_name);
-                }
+                alert(`Match noted for ${data.item_name}! ${data.requester_name} has been notified.`);
             } else {
                 alert("Error: " + data.message);
             }
         })
-        .catch(err => console.error("Wish Match Error:", err));
+        .catch(err => {
+            console.error("Match Error:", err);
+            alert("Could not send match. Please try again.");
+        });
     };
 
-    
     if (addWishBtn) {
-        addWishBtn.addEventListener('click', () => { if(wishModal) wishModal.style.display = 'flex'; });
+        addWishBtn.addEventListener('click', () => { wishModal.style.display = 'flex'; });
     }
 
     const hideWishModal = () => { 
-        if(wishModal) wishModal.style.display = 'none'; 
+        wishModal.style.display = 'none'; 
         if(wishForm) wishForm.reset(); 
     };
 
@@ -157,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch('wishlist_controller.php', { method: 'POST', body: formData })
             .then(res => res.text())
             .then(data => {
-                if (data.includes("Success")) {
+                if (data.trim() === "Success") {
                     hideWishModal();
                     loadWishes();
                 } else {
@@ -179,11 +156,14 @@ document.addEventListener('DOMContentLoaded', () => {
         reportForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(reportForm);
+            // Ensuring fields match report_handler.php
+            formData.append('type', document.getElementById('reportType').value);
+            formData.append('details', document.getElementById('reportDetails').value);
 
             fetch('report_handler.php', { method: 'POST', body: formData })
                 .then(res => res.text())
                 .then(data => {
-                    if (data.includes("Success")) {
+                    if (data.trim() === "Success") {
                         alert("Thank you. Your report has been submitted.");
                         reportForm.reset();
                         reportModal.style.display = 'none';
@@ -207,22 +187,38 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(loadBulletin, 5000);
     setInterval(loadWishes, 30000);
 
+    // New function to load notifications
     function loadNotifications() {
         const notifContainer = document.getElementById('notif-list-container');
         if (!notifContainer) return;
 
-        // Fetch from your new controller
         fetch('notif_controller.php?action=fetch')
             .then(res => res.text())
-            .then(html => {
-                notifContainer.innerHTML = html;
+            .then(data => {
+                notifContainer.innerHTML = data;
+                
+                // Update the "Recent updates" text if there are notifications
+                const statusText = document.getElementById('notif-status-text');
+                if (data.includes('notif-item')) {
+                    statusText.innerText = "You have new updates";
+                }
             })
-            .catch(err => console.error("Notification Fetch Error:", err));
+            .catch(err => console.error("Notification Error:", err));
     }
 
     // Initial load
     loadNotifications();
-
-    // Optional: Refresh every 60 seconds to check for new admin approvals
-    setInterval(loadNotifications, 60000);
+    // Refresh every 30 seconds
+    setInterval(loadNotifications, 30000);
 });
+
+window.handleNotifClick = function(type, senderId, senderName, itemName) {
+    if (type === 'wish_match') {
+        // Redirect to marketplace and auto-trigger the chat via URL parameters
+        window.location.href = `marketplace.php?open_chat=1&user_id=${senderId}&name=${encodeURIComponent(senderName)}&item=${encodeURIComponent(itemName)}`;
+    } else if (type === 'message') {
+        alert("Opening message from " + senderName);
+    } else if (type === 'order') {
+        window.location.href = "marketplace.php?view=orders";
+    }
+};
