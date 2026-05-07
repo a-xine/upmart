@@ -1,6 +1,6 @@
 <?php
-session_start();
 include '../db_connect.php';
+session_start();
 
 // 1. Guard
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
@@ -9,7 +9,16 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 }
 
 // 2. Fetch Reports with Error Catching
-$query = "SELECT * FROM reports ORDER BY created_at DESC";
+$query = "SELECT r.*, 
+                 p.title AS prod_title, p.description AS prod_desc, p.price, p.image_url, p.product_id,
+                 u_seller.full_name AS seller_name, u_seller.profile_pic AS seller_img, u_seller.user_id AS seller_id,
+                 c.category_name AS cat_name
+          FROM reports r
+          LEFT JOIN products p ON r.product_id = p.product_id
+          LEFT JOIN users u_seller ON p.seller_id = u_seller.user_id
+          LEFT JOIN categories c ON p.category_id = c.category_id
+          WHERE r.status = 'Pending' -- This hides 'Resolved' reports
+          ORDER BY r.created_at DESC";
 $reports = $conn->query($query);
 
 if (!$reports) {
@@ -158,7 +167,20 @@ $total_admin_notifs = $pending_post_count + $pending_report_count;
                                 </div>
                             </div>
                             <div class="report-actions">
-                                <button class="view-btn">Investigate</button>
+                                <button class="view-btn" onclick="openInvestigate(
+                                    '<?= addslashes($row['prod_title'] ?? 'Product Removed') ?>',
+                                    '<?= addslashes($row['prod_desc'] ?? '') ?>',
+                                    '<?= $row['image_url'] ?? 'default_product.png' ?>',
+                                    '<?= addslashes($row['reason']) ?>',
+                                    '<?= addslashes($row['details']) ?>',
+                                    '<?= $row['report_id'] ?>',
+                                    '<?= $row['seller_id'] ?>',
+                                    '<?= $row['product_id'] ?>',
+                                    '<?= number_format($row['price'], 2) ?>',
+                                    '<?= addslashes($row['cat_name'] ?? 'General') ?>',
+                                    '<?= addslashes($row['seller_name'] ?? 'Unknown User') ?>',
+                                    '<?= $row['seller_img'] ?? '../images/profile.jpg' ?>'
+                                )">Investigate</button>
                                 <a href="admin_report.php?action=dismiss&id=<?= $row['report_id'] ?>"
                                     onclick="return confirm('Dismiss this report?')"
                                     class="dismiss-btn" style="text-decoration:none; padding: 10px; font-size: 0.8rem;">
@@ -173,8 +195,46 @@ $total_admin_notifs = $pending_post_count + $pending_report_count;
             </div>
         </section>
     </div>
+    <div id="investigationSidebar" class="investigation-sidebar">
+        <div class="sidebar-header">
+            <h3>Investigate Post</h3>
+            <button onclick="closeSidebar()" class="close-btn">&times;</button>
+        </div>
+
+        <div class="sidebar-body">
+            <div class="side-card-header">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <img id="side-seller-img" src="../images/profile.jpg" class="side-avatar">
+                    <div>
+                        <div style="font-size: 0.85rem; color: #666;">Seller</div>
+                        <strong id="side-seller-name" style="font-size: 0.95rem;"></strong>
+                    </div>
+                </div>
+                <div class="side-price-tag" style="background: #e1f5da; padding: 5px 12px; border-radius: 20px; font-weight: bold; color: #2d5a27;">
+                    ₱<span id="side-price"></span>
+                </div>
+            </div>
+
+            <h2 id="side-title" class="side-product-title"></h2>
+            <span id="side-category" style="color: #9a0000; font-weight: 600; font-size: 0.8rem; text-transform: uppercase;"></span>
+            
+            <img id="side-img" src="" class="side-main-img">
+
+            <div style="color: #555; font-size: 0.9rem; line-height: 1.5;" id="side-desc"></div>
+
+            <div class="side-report-note">
+                <strong>REPORT REASON: <span id="side-reason"></span></strong>
+                <p id="side-details" style="margin-top: 5px; font-size: 0.85rem; color: #444;"></p>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <button type="button" class="ban-btn-large" onclick="adminAction('ban')">
+                Ban Seller & Delete Post    
+            </button>
+        </div>  
+    </div>  
 
     <script src="admin-panel.js"></script>
 </body>
-
 </html>
