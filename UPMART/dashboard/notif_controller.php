@@ -21,36 +21,43 @@ if ($action === 'fetch') {
     if ($role === 'admin') {
         $output = '';
 
-        // Fetch count of posts needing approval
+        // 1. Check for Pending Posts
         $pending_posts_res = $conn->query("SELECT COUNT(*) as total FROM products WHERE approval_status = 'Pending'");
         $pending_posts = $pending_posts_res->fetch_assoc()['total'] ?? 0;
 
-        // Fetch count of pending reports
+        // 2. Check for Pending Reports
         $pending_reports_res = $conn->query("SELECT COUNT(*) as total FROM reports WHERE status = 'Pending'");
         $pending_reports = $pending_reports_res->fetch_assoc()['total'] ?? 0;
 
+        // Build the output
         if ($pending_posts > 0) {
             $output .= "
-            <div class='notif-item unread' onclick=\"window.location.href='admin_post.php'\" style='cursor:pointer;'>
-                <p><b>Pending Approvals:</b> You have $pending_posts new posts to review.</p>
-                <small>System Update</small>
+            <div class='notif-item unread admin-task' onclick=\"window.location.href='admin_post.php'\">
+                <div class='notif-icon'>📝</div>
+                <div class='notif-content'>
+                    <p><b>Approvals:</b> $pending_posts posts are waiting for review.</p>
+                    <small>Action Required</small>
+                </div>
             </div>";
         }
 
         if ($pending_reports > 0) {
             $output .= "
-            <div class='notif-item unread' onclick=\"window.location.href='admin_report.php'\" style='cursor:pointer;'>
-                <p><b>New Reports:</b> You have $pending_reports items flagged by users.</p>
-                <small>Security Update</small>
+            <div class='notif-item unread admin-report' onclick=\"window.location.href='admin_report.php'\">
+                <div class='notif-icon'>🚩</div>
+                <div class='notif-content'>
+                    <p><b>Reports:</b> $pending_reports items have been flagged.</p>
+                    <small>Security Alert</small>
+                </div>
             </div>";
         }
 
+        // Final Display
         if (empty($output)) {
-            echo "<p style='padding:15px; color:#888;'>No pending admin tasks.</p>";
+            echo "<div class='notif-empty'>✅ No pending admin tasks.</div>";
         } else {
-            echo $output;
+            echo "<div class='admin-notif-header'>Pending Tasks</div>" . $output;
         }
-
     } else {
         // 3. USER VIEW: Show messages, order requests, and approval updates
         $query = "SELECT n.*, u.full_name as sender_name 
@@ -69,12 +76,21 @@ if ($action === 'fetch') {
                 $status_class = $row['is_read'] ? '' : 'unread';
                 $sender = $row['sender_name'] ?? 'System Admin';
                 $sender_id = $row['sender_id'] ?? 0;
+                $type = $row['notif_type'] ?? 'general';
                 
+                $message_text = $row['message'];
+                $item_label = "Item"; 
+                
+                if (preg_match("/'([^']+)'/", $message_text, $matches)) {
+                    $item_label = $matches[1]; // This will be "Pastil, 20pcs."
+                }
+
+                // Pass the type, sender_id, sender_name, and item_label
                 echo "
                 <div class='notif-item $status_class' 
-                    onclick='handleNotifClick(\"wish_match\", \"{$row['sender_id']}\", \"$sender\", \"Wishlist Match\")'
+                    onclick='handleNotifClick(\"$type\", \"$sender_id\", \"$sender\", \"$item_label\")'
                     style='cursor:pointer;'>
-                    <p>{$row['message']}</p>
+                    <p>$message_text</p>
                     <small>" . date('g:i A', strtotime($row['created_at'])) . "</small>
                 </div>";
             }
