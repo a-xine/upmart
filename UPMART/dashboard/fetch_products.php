@@ -33,12 +33,16 @@ if ($result && $result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
 $imgs_q = $conn->query("SELECT image_path FROM media WHERE product_id = {$row['product_id']}");
 $images = [];
-while ($ir = $imgs_q->fetch_assoc()) { $images[] = $ir['image_path']; }
-if (empty($images)) $images[] = '../images/default.jpg';
+while ($img_row = $imgs_q->fetch_assoc()) {
+    $path = $img_row['image_path'];
+    $path = preg_replace('#^\.\./+#', '', $path);
+    $images[] = $path;
+}
+if (empty($images)) $images[] = 'uploads/default.jpg';
 
 $count = count($images);
 $gallery_class = $count === 1 ? 'single' : ($count === 2 ? 'two' : 'multi');
-$seller_pic = !empty($row['profile_pic']) ? '../images/' . $row['profile_pic'] : '../images/profile.jpg';
+$seller_pic = !empty($row['profile_pic']) ? 'uploads/' . $row['profile_pic'] : 'uploads/profile.jpg';
         echo '
         <article class="post-card">
             <div class="post-header">
@@ -49,7 +53,16 @@ $seller_pic = !empty($row['profile_pic']) ? '../images/' . $row['profile_pic'] :
                         <span class="post-time"><span class="cat-tag">'.htmlspecialchars($row['category_name']).'</span></span>
                     </div>
                 </div>
-                <div class="post-price">₱'.number_format($row['price'], 2).'</div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                <div class="post-price">&#8369;' . number_format($row['price'], 2) . '</div>
+                <button class="icon-btn post-report-btn"
+                    data-product-id="' . $row['product_id'] . '"
+                    data-product-name="' . htmlspecialchars($row['title'], ENT_QUOTES) . '"
+                    title="Report Post"
+                    onclick="openPostReportModal(' . $row['product_id'] . ', \'' . htmlspecialchars($row['title'], ENT_QUOTES) . '\')">
+                    <span class="material-icons" style="font-size:16px;">report</span>
+                </button>
+            </div>
             </div>
             <p class="product-description">'.htmlspecialchars($row['title']).'</p>
             <div class="post-gallery ' . $gallery_class . '">';

@@ -51,10 +51,10 @@ if (isset($_POST['create_post']) || isset($_POST['update_post'])) {
                 }
                 $conn->query("DELETE FROM media WHERE product_id='$product_id'");
             }
-            $upload_dir = '../uploads/';
+            $upload_dir = 'uploads/';
             foreach ($_FILES['product_images']['tmp_name'] as $i => $tmp) {
                 if ($_FILES['product_images']['error'][$i] !== UPLOAD_ERR_OK) continue;
-                $fileName   = time() . '' . $i . '' . basename($_FILES['product_images']['name'][$i]);
+                $fileName   = time() . '_' . $i . '_' . basename($_FILES['product_images']['name'][$i]);
                 $targetPath = $upload_dir . $fileName;
                 if (move_uploaded_file($tmp, $targetPath)) {
                     $safe = mysqli_real_escape_string($conn, $targetPath);

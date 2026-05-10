@@ -18,7 +18,7 @@ $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 
 $profile_img = (!empty($user['profile_pic'])) 
-               ? "../uploads/" . $user['profile_pic'] 
+               ? "..uploads/" . $user['profile_pic'] 
                : "../images/profile.jpg";
 
 $show_setup_overlay = (($user['is_setup_complete'] ?? 0) == 0);
@@ -133,7 +133,7 @@ $show_setup_overlay = (($user['is_setup_complete'] ?? 0) == 0);
 
                     $count = count($images);
                     $gallery_class = $count === 1 ? 'single' : ($count === 2 ? 'two' : 'multi');
-                    $seller_pic = !empty($row['profile_pic']) ? '../images/' . $row['profile_pic'] : '../images/profile.jpg';
+                    $seller_pic = !empty($row['profile_pic']) ? 'uploads/' . $row['profile_pic'] : '../images/profile.jpg';
                 ?>
                     <article class="post-card">
                         <div class="post-header">
